@@ -59,3 +59,4 @@ models/saved_models/*.h5
 # Cache
 .cache/
 *.cache
+data/processed/preprocessed_data.npz

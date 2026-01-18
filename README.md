@@ -7,13 +7,12 @@
 
 ## 📖 Overview
 
-**TerraClassifier** is an advanced deep learning system for **automated Land Use and Land Cover (LULC) classification** using satellite imagery. It uses a custom CNN architecture with explainable AI (Grad-CAM) to classify satellite images into 5 different land cover categories.
+**TerraClassifier** is an advanced deep learning system for **automated Land Use and Land Cover (LULC) classification** using satellite imagery. It uses a custom CNN architecture with explainable AI (Grad-CAM) to classify satellite images into 10 different land cover categories.
 
 ### Key Features ✨
 
 - ✅ **Advanced CNN Architecture** - Custom designed with batch normalization and dropout
-- ✅ **Multi-Class Classification** - 5 land cover types
-- ✅ **High Accuracy** - 96.15% test accuracy with balanced metrics
+- ✅ **Multi-Class Classification** - 10 land cover types
 - ✅ **Explainable AI** - Grad-CAM visualizations for interpretability
 - ✅ **Data Augmentation** - Rotation, flipping, zoom, and shift transformations
 - ✅ **Comprehensive Evaluation** - Accuracy, Precision, Recall, F1-Score, Confusion Matrix
@@ -24,15 +23,20 @@
 
 ## 🎯 Supported Land Cover Classes
 
-The model can classify satellite images into 5 categories:
+The model can classify satellite images into 10 categories:
 
 | Class | Description | Symbol |
 |-------|-------------|--------|
-| Forest | Dense vegetation areas with trees | 🌲 |
+| Forest | Dense vegetation areas | 🌲 |
 | Residential | Urban residential areas | 🏘️ |
-| Highway | Road networks and transportation infrastructure | 🛣️ |
+| Highway | Road networks | 🛣️ |
 | Industrial | Industrial/manufacturing zones | 🏭 |
-| River | Water bodies and flowing rivers | 🌊 |
+| Pasture | Grassland and pastures | 🌾 |
+| Annual Crop | Agricultural crop areas | 🌱 |
+| Permanent Crop | Orchards and permanent crops | 🌳 |
+| Herbaceous Vegetation | Mixed vegetation | 🌿 |
+| River | Water bodies and rivers | 🌊 |
+| Sea/Lake | Large water bodies | 💧 |
 
 ---
 
@@ -40,10 +44,9 @@ The model can classify satellite images into 5 categories:
 
 - **Source**: EuroSAT RGB Satellite Dataset
 - **Resolution**: 64×64 RGB images
-- **Total Samples**: 13,500 images
-- **Train/Val/Test Split**: 9,450 / 1,350 / 2,700 (70% / 10% / 20%)
-- **Classes**: 5 land cover categories
-- **Data Augmentation**: Applied during training (rotation, flips, zoom, shifts)
+- **Total Samples**: 10,000+ images
+- **Train/Val/Test Split**: 70% / 10% / 20%
+- **Data Augmentation**: Applied during training
 
 ---
 
@@ -174,31 +177,30 @@ Shows:
 ```
 Input: (64, 64, 3) RGB Image
     ↓
-Conv Block 1: Conv2D(32) → BatchNorm → Conv2D(32) → BatchNorm → MaxPool → Dropout(0.25)
+Conv2D(32 filters, 3×3) → ReLU → BatchNorm → MaxPool(2×2)
     ↓
-Conv Block 2: Conv2D(64) → BatchNorm → Conv2D(64) → BatchNorm → MaxPool → Dropout(0.25)
+Conv2D(64 filters, 3×3) → ReLU → BatchNorm → MaxPool(2×2)
     ↓
-Conv Block 3: Conv2D(128) → BatchNorm → Conv2D(128) → BatchNorm → MaxPool → Dropout(0.4)
+Conv2D(128 filters, 3×3) → ReLU → BatchNorm → MaxPool(2×2)
     ↓
-Conv Block 4: Conv2D(256) → BatchNorm → Conv2D(256) → BatchNorm → MaxPool → Dropout(0.4)
+Conv2D(128 filters, 3×3) → ReLU → BatchNorm → MaxPool(2×2)
     ↓
 Flatten
     ↓
-Dense(512) → ReLU → BatchNorm → Dropout(0.5) → L2 Regularization
+Dense(256) → ReLU → Dropout(0.5)
     ↓
-Dense(256) → ReLU → BatchNorm → Dropout(0.5) → L2 Regularization
+Dense(128) → ReLU → Dropout(0.5)
     ↓
-Dense(5) → Softmax (Output)
+Dense(10) → Softmax (Output)
 ```
 
 ### Key Components
 
 - **Batch Normalization**: Stabilizes training and reduces overfitting
-- **Progressive Dropout**: 0.25 → 0.4 → 0.5 (increases with depth)
-- **L2 Regularization**: Weight decay (0.001) in dense layers
+- **Dropout**: Prevents overfitting (rate: 0.5)
 - **Max Pooling**: Reduces spatial dimensions
 - **ReLU Activation**: Non-linearity
-- **Softmax Output**: 5-class probability distribution
+- **Softmax Output**: Multi-class probability distribution
 
 ### Training Configuration
 
@@ -225,16 +227,6 @@ The model is evaluated using:
 - **Recall**: True positives vs false negatives (per class)
 - **F1-Score**: Harmonic mean of precision and recall
 - **Confusion Matrix**: Detailed classification breakdown
-
-### Actual Results
-
-- **Test Accuracy**: 96.15%
-- **Precision**: 96.51%
-- **Recall**: 96.15%
-- **F1-Score**: 96.14%
-- **Test Samples**: 2,700 images
-- **Correctly Classified**: 2,597 / 2,700
-- **Error Rate**: 3.85%
 
 ### Results Visualization
 
@@ -281,10 +273,10 @@ The model includes Grad-CAM (Gradient-weighted Class Activation Mapping) for int
    - Fine details may be lost
    - **Solution**: Use higher resolution (256×256+)
 
-2. **RGB-Only Data**
-   - Uses only 3 RGB channels
-   - Full EuroSAT has 13 spectral bands
-   - **Solution**: Use multi-spectral data for better discrimination
+2. **Limited Dataset Size**
+   - EuroSAT has ~10,000 images
+   - Limited geographic diversity
+   - **Solution**: Combine with Sentinel-2, UC Merced datasets
 
 3. **Class Imbalance**
    - Some classes have more training examples
@@ -369,7 +361,7 @@ from src.model_architecture import LULCClassifier
 from src.train import ModelTrainer
 
 # Build model
-classifier = LULCClassifier(input_shape=(64, 64, 3), num_classes=5)
+classifier = LULCClassifier(input_shape=(64, 64, 3), num_classes=10)
 model = classifier.build_custom_cnn()
 model = classifier.compile_model(model, learning_rate=0.001)
 
@@ -430,9 +422,14 @@ For issues, questions, or suggestions, please create an issue on GitHub.
 
 ---
 
-**Status**: ✅ Production Ready | **Model Trained**: ✅ Yes | **Ready for Demo**: ✅ Yes | **Accuracy**: 96.15%
+**Status**: ✅ Production Ready | **Model Trained**: ✅ Yes | **Ready for Demo**: ✅ Yes
 
-Last Updated: January 18, 2026
+Last Updated: January 13, 2026
+- scikit-learn: Machine learning utilities
+- Pandas & NumPy: Data manipulation
+- Pillow: Image handling
+- LIME: Explainable AI
+- Jupyter: Interactive notebooks
 
 ## Usage
 
