@@ -29,10 +29,15 @@ class ImageClassifier:
         self.model = load_model(model_path)
         self.img_size = (64, 64)
         
-        # Land cover classes
-        self.classes = ['AnnualCrop', 'Forest', 'HerbaceousVegetation', 
-                       'Highway', 'Industrial', 'Pasture', 
-                       'PermanentCrop', 'Residential', 'River', 'SeaLake']
+        # Load classes from preprocessed data
+        try:
+            data = np.load('data/processed/preprocessed_data.npz')
+            self.classes = list(data['classes'])
+            print(f"✓ Loaded {len(self.classes)} classes from preprocessed data")
+        except:
+            # Fallback to the 5 classes in your dataset
+            self.classes = ['Forest', 'Highway', 'Industrial', 'Residential', 'River']
+            print("⚠️  Using default 5 classes")
         
         print("✓ Model loaded successfully!")
         print(f"Classes: {', '.join(self.classes)}\n")
